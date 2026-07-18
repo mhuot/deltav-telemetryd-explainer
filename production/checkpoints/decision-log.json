@@ -1,0 +1,79 @@
+{
+  "project": "deltav-telemetryd-explainer",
+  "pipeline": "animated-explainer",
+  "created": "2026-07-17",
+  "budget": { "mode": "observe", "estimated_usd": 0.0, "actual_usd": 0.0 },
+  "_schema_note": "Append-only. A decision's identity is the (category, subject) pair; to change a decision, APPEND a new entry with the identical category+subject and move the old choice into options_considered with rejected_because explaining the change. Never edit or delete old entries.",
+  "decisions": [
+    {
+      "category": "pipeline_selection",
+      "subject": "Production pipeline",
+      "selected": "Local Kokoro TTS + HyperFrames HTML/GSAP render + Homebrew FFmpeg 8.1.2 (libx264 present, doctor-verified)",
+      "options_considered": [
+        "Homebrew FFmpeg (already installed, libx264 confirmed)",
+        "Source-built FFmpeg in ~/ffbuild per skill default"
+      ],
+      "rejected_because": "A source build adds ~10 min for zero capability gain; Homebrew build already passes the libx264 encoder check and HyperFrames doctor.",
+      "confidence": 0.95
+    },
+    {
+      "category": "explainer_shape",
+      "subject": "Explainer shape",
+      "selected": "concept explainer (step diagrams), 7 scenes, ~65-70 s",
+      "options_considered": [
+        "concept explainer (step diagrams)",
+        "solution preview (UI tour)"
+      ],
+      "rejected_because": "The source is an architecture document with no product UI; the deliverable is understanding a pipeline, which is diagram-led by nature.",
+      "confidence": 0.95,
+      "approved_by": "user brief (create an explainer video based on the architecture md)"
+    },
+    {
+      "category": "voice_selection",
+      "subject": "Narration voice",
+      "selected": "Kokoro af_heart @ speed 1.1, lang a",
+      "options_considered": ["af_heart", "other Kokoro voices"],
+      "rejected_because": "Skill default; weights already cached locally; neutral clear delivery suits a technical explainer.",
+      "confidence": 0.85
+    },
+    {
+      "category": "music_selection",
+      "subject": "Background music",
+      "selected": "Deterministic synthesized sine pad (A2+E3+A3, lowpass 1400 Hz) at data-volume 0.11 on track 8",
+      "options_considered": ["quiet synthesized pad", "narration only"],
+      "rejected_because": "Narration-only reads dry over 70 s of abstract infrastructure diagrams; a low bed adds continuity without competing with speech.",
+      "confidence": 0.7
+    },
+    {
+      "category": "output_profile",
+      "subject": "Master output",
+      "selected": "1920x1080 @ 30 fps, H.264 + AAC, HyperFrames --quality high, ~65-70 s",
+      "options_considered": ["1080p30", "4K", "vertical 9:16"],
+      "rejected_because": "Diagram-and-text content targets desktop/Teams viewing; 1080p is the skill default and renders fast.",
+      "confidence": 0.9
+    },
+    {
+      "category": "explainer_shape",
+      "subject": "Scene 5/7 persistence depiction",
+      "selected": "v2: enricher produces enriched flows to the deltav-flows Kafka topic; ClickHouse ingests with its own Kafka consumer; recap spur Kafka->telemetryd removed",
+      "options_considered": [
+        "v2: SCS processor -> deltav-flows topic -> ClickHouse Kafka consumer",
+        "v1: enricher writes flow documents directly to ClickHouse"
+      ],
+      "rejected_because": "SME feedback (SME, 2026-07-18): the doc's 'writes to deltav-flows (ClickHouse ingestion)' wording and mermaid edge read as a direct write, but deltav-flows is a Kafka topic and ClickHouse consumes it itself. Scene 6 partition claim left unchanged pending the SME's confirmation (his note conflicts with the doc's Scaling-ceilings section).",
+      "confidence": 0.9,
+      "approved_by": "user (relayed SME feedback and requested v2)"
+    },
+    {
+      "category": "approval_gates",
+      "subject": "Approval gates",
+      "selected": "Autonomous run: script self-locked, validation ladder + snapshot review + post-render self-review as gates; user reviews the finished master",
+      "options_considered": [
+        "autonomous with self-review evidence",
+        "pause for user approval at script lock"
+      ],
+      "rejected_because": "Session is autonomous (user not watching live); the source doc fully determines the content, so script-lock approval would only block progress.",
+      "confidence": 0.85
+    }
+  ]
+}

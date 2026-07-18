@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Delta-V telemetryd — explainer</title>
+<style>
+  :root {
+    --ground: #0d1520;
+    --panel: #16212e;
+    --panel-2: #1b2836;
+    --ink: #e8eef4;
+    --ink-dim: #9fb0c0;
+    --accent: #4cc2ff;
+    --hairline: #2a3947;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  #stage {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+  }
+  .fill { position: absolute; inset: 0; }
+  #bg { background: var(--ground); }
+  .scene { position: absolute; inset: 0; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  .kicker { position: absolute; left: 0; right: 0; top: 96px; display: block;
+            text-align: center; font-size: 26px; letter-spacing: 10px;
+            color: var(--ink-dim); opacity: 0;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .chip { position: absolute; left: 120px; top: 100px; display: block;
+          width: 96px; height: 96px; border-radius: 20px; background: var(--accent);
+          color: #0d1520; font-size: 44px; font-weight: 700;
+          text-align: center; line-height: 96px; opacity: 0; }
+  .stitle { position: absolute; left: 250px; top: 122px; display: block;
+            font-size: 52px; font-weight: 650; opacity: 0; }
+  .caption { position: absolute; left: 0; right: 0; bottom: 96px; display: block;
+             text-align: center; font-size: 30px; color: var(--ink-dim); opacity: 0; }
+  .caption b { color: var(--accent); font-weight: 600; }
+
+  /* ---- scene 1 : hook ---- */
+  #s1-q { position: absolute; left: 220px; right: 220px; top: 380px; display: block;
+          font-size: 74px; font-weight: 650; text-align: center; line-height: 1.25;
+          opacity: 0; }
+  #s1-q b { color: var(--accent); font-weight: 650; }
+  #s1-answer { position: absolute; left: 760px; top: 660px; display: block;
+               padding: 22px 44px; border: 3px solid var(--accent); border-radius: 999px;
+               font-size: 40px; font-weight: 600; opacity: 0; }
+  #s1-answer s { color: var(--ink-dim); }
+  #s1-answer b { color: var(--accent); font-weight: 700; }
+
+  /* ---- scene 2 : hollowed-out telemetryd ---- */
+  #s2-card { position: absolute; left: 460px; top: 260px; display: block;
+             width: 1000px; height: 460px; background: var(--panel);
+             border: 2px solid var(--hairline); border-radius: 24px; opacity: 0; }
+  #s2-card-head { position: absolute; left: 500px; top: 300px; display: block;
+                  font-size: 32px; color: var(--ink-dim); opacity: 0; }
+  .q-chip { position: absolute; display: block; width: 212px; height: 96px;
+            background: var(--panel-2); border: 2px solid var(--hairline);
+            border-radius: 14px; text-align: center; opacity: 0;
+            font-size: 26px; color: var(--ink-dim); padding-top: 16px; }
+  .q-chip small { display: block; font-size: 20px; letter-spacing: 3px;
+                  color: var(--ink-dim); margin-top: 8px; }
+  #s2-stamp { position: absolute; left: 700px; top: 608px; display: block;
+              padding: 14px 36px; border: 4px solid var(--accent); border-radius: 12px;
+              font-size: 40px; font-weight: 700; color: var(--accent);
+              letter-spacing: 4px; opacity: 0; background: var(--ground); }
+  #s2-bypass { position: absolute; left: 0; top: 0; display: block; }
+  #s2-bypass-path { stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+  #s2-bypass-lbl { position: absolute; left: 0; right: 0; top: 916px; display: block;
+                   text-align: center; font-size: 30px; color: var(--accent); opacity: 0; }
+
+  /* ---- scene 3 : minion ---- */
+  .pkt { position: absolute; top: 300px; display: block; width: 330px; height: 120px;
+         background: var(--panel); border: 2px solid var(--hairline); border-radius: 16px;
+         text-align: center; padding-top: 20px; font-size: 32px; font-weight: 600;
+         opacity: 0; }
+  .pkt small { display: block; font-size: 24px; color: var(--accent); margin-top: 8px;
+               font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  #s3-p1 { left: 160px; } #s3-p2 { left: 570px; } #s3-p3 { left: 980px; } #s3-p4 { left: 1390px; }
+  #s3-arrows { position: absolute; left: 0; top: 0; display: block; }
+  #s3-port { position: absolute; left: 360px; top: 620px; display: block; width: 1200px;
+             height: 130px; background: var(--panel-2); border: 3px solid var(--accent);
+             border-radius: 18px; text-align: center; padding-top: 26px;
+             font-size: 40px; font-weight: 650; opacity: 0; }
+  #s3-port span { color: var(--accent); font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---- scene 4 : gateway ---- */
+  .lane-l { position: absolute; left: 200px; display: block; width: 430px; height: 84px;
+            background: var(--panel); border: 2px solid var(--hairline); border-radius: 14px;
+            font-size: 30px; text-align: center; line-height: 80px; opacity: 0;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .lane-r { position: absolute; left: 1030px; display: block; width: 690px; height: 84px;
+            background: var(--panel-2); border: 2px solid var(--hairline); border-radius: 14px;
+            font-size: 28px; text-align: center; line-height: 80px; opacity: 0;
+            color: var(--accent);
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  #s4-l1, #s4-r1 { top: 292px; } #s4-l2, #s4-r2 { top: 406px; }
+  #s4-l3, #s4-r3 { top: 520px; } #s4-l4, #s4-r4 { top: 634px; }
+  #s4-edges { position: absolute; left: 0; top: 0; display: block; }
+  #s4-colhead-l { position: absolute; left: 200px; top: 236px; display: block; width: 430px;
+                  text-align: center; font-size: 24px; letter-spacing: 4px;
+                  color: var(--ink-dim); opacity: 0; }
+  #s4-colhead-r { position: absolute; left: 1030px; top: 236px; display: block; width: 690px;
+                  text-align: center; font-size: 24px; letter-spacing: 4px;
+                  color: var(--ink-dim); opacity: 0; }
+
+  /* ---- scene 5 : flow-enricher ---- */
+  .topic5 { position: absolute; left: 150px; display: block; width: 470px; height: 78px;
+            background: var(--panel); border: 2px solid var(--hairline); border-radius: 12px;
+            font-size: 25px; text-align: center; line-height: 74px; opacity: 0;
+            color: var(--ink-dim);
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  #s5-t1 { top: 280px; } #s5-t2 { top: 380px; } #s5-t3 { top: 480px; } #s5-t4 { top: 580px; }
+  #s5-enr { position: absolute; left: 800px; top: 340px; display: block; width: 420px;
+            height: 280px; background: var(--panel-2); border: 3px solid var(--accent);
+            border-radius: 20px; text-align: center; padding-top: 46px; opacity: 0; }
+  #s5-enr b { font-size: 38px; font-weight: 650; }
+  #s5-enr span { display: block; font-size: 25px; color: var(--ink-dim); margin-top: 16px; }
+  #s5-xn { position: absolute; left: 1160px; top: 316px; display: block; width: 110px;
+           height: 60px; background: var(--accent); color: #0d1520; border-radius: 999px;
+           font-size: 30px; font-weight: 700; text-align: center; line-height: 60px;
+           opacity: 0; }
+  #s5-topic { position: absolute; left: 1260px; top: 448px; display: block; width: 240px;
+              height: 64px; background: var(--panel); border: 2px solid var(--hairline);
+              border-radius: 12px; font-size: 23px; text-align: center; line-height: 60px;
+              color: var(--accent); opacity: 0;
+              font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  #s5-ch { position: absolute; left: 1560px; top: 400px; display: block; width: 240px;
+           height: 160px; background: var(--panel); border: 2px solid var(--hairline);
+           border-radius: 20px; text-align: center; padding-top: 36px; opacity: 0; }
+  #s5-ch b { font-size: 32px; font-weight: 650; }
+  #s5-ch span { display: block; font-size: 21px; color: var(--ink-dim); margin-top: 10px; }
+  #s5-node-ctx { position: absolute; left: 800px; top: 700px; display: block; width: 420px;
+                 height: 70px; border: 2px dashed var(--hairline); border-radius: 12px;
+                 font-size: 26px; color: var(--ink-dim); text-align: center;
+                 line-height: 66px; opacity: 0; }
+  #s5-edges { position: absolute; left: 0; top: 0; display: block; }
+
+  /* ---- scene 6 : meaning ---- */
+  .panel6 { position: absolute; top: 280px; display: block; width: 760px; height: 560px;
+            background: var(--panel); border: 2px solid var(--hairline);
+            border-radius: 24px; opacity: 0; }
+  #s6-left { left: 160px; } #s6-right { left: 1000px; }
+  .p6-title { position: absolute; top: 322px; display: block; width: 760px;
+              text-align: center; font-size: 38px; font-weight: 650; opacity: 0; }
+  #s6-lt { left: 160px; } #s6-rt { left: 1000px; }
+  .cb-row { position: absolute; left: 220px; display: block; width: 640px; height: 76px;
+            font-size: 30px; opacity: 0; }
+  .cb-row i { font-style: normal; color: var(--ink-dim); float: right; font-size: 27px; }
+  #s6-cb1 { top: 440px; } #s6-cb2 { top: 540px; } #s6-cb3 { top: 640px; }
+  #s6-cb3 b { color: var(--accent); }
+  .pcell { position: absolute; display: block; width: 120px; height: 72px;
+           background: var(--panel-2); border: 2px solid var(--hairline);
+           border-radius: 10px; opacity: 0; }
+  #s6-count { position: absolute; left: 1000px; top: 692px; display: block; width: 760px;
+              text-align: center; font-size: 34px; opacity: 0; }
+  #s6-count b { color: var(--accent); font-size: 42px; }
+  #s6-sub { position: absolute; left: 1000px; top: 752px; display: block; width: 760px;
+            text-align: center; font-size: 24px; color: var(--ink-dim); opacity: 0; }
+
+  /* ---- scene 7 : recap ---- */
+  .node7 { position: absolute; top: 480px; display: block; width: 240px; height: 120px;
+           background: var(--panel); border: 2px solid var(--hairline); border-radius: 16px;
+           text-align: center; padding-top: 24px; font-size: 29px; font-weight: 600;
+           opacity: 0; }
+  .node7 small { display: block; font-size: 21px; color: var(--ink-dim); margin-top: 8px; }
+  #s7-n1 { left: 110px; } #s7-n2 { left: 400px; } #s7-n3 { left: 690px; }
+  #s7-n4 { left: 980px; } #s7-n5 { left: 1270px; } #s7-n6 { left: 1560px; }
+  #s7-n4 { border-color: var(--accent); }
+  #s7-td { position: absolute; left: 880px; top: 760px; display: block; width: 440px;
+           height: 100px; border: 2px dashed var(--hairline); border-radius: 16px;
+           text-align: center; padding-top: 18px; font-size: 28px; color: var(--ink-dim);
+           opacity: 0; }
+  #s7-td small { display: block; font-size: 21px; margin-top: 6px; }
+  #s7-edges { position: absolute; left: 0; top: 0; display: block; }
+  #s7-close { position: absolute; left: 0; right: 0; top: 220px; display: block;
+              text-align: center; font-size: 64px; font-weight: 650; opacity: 0; }
+  #s7-close b { color: var(--accent); font-weight: 650; }
+
+  .edge { fill: none; stroke: var(--accent); stroke-width: 4;
+          stroke-dasharray: 700; stroke-dashoffset: 700; }
+  .edge-dim { fill: none; stroke: var(--hairline); stroke-width: 4;
+              stroke-dasharray: 12 10; opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage" data-composition-id="deltav-telemetryd-explainer" data-start="0"
+     data-duration="80.15" data-width="1920" data-height="1080">
+
+  <div id="bg" class="fill"></div>
+
+  <!-- scene 1 : hook -->
+  <section class="scene clip" id="scene-1" data-start="0" data-duration="8.65" data-track-index="1">
+    <div class="kicker" id="s1-kicker">DELTA-V ARCHITECTURE</div>
+    <div id="s1-q">A flow packet arrives at Delta-V.<br><b>Which service processes it?</b></div>
+    <div id="s1-answer"><s class="mono">telemetryd</s>&nbsp;&nbsp;<b>— not this one</b></div>
+  </section>
+
+  <!-- scene 2 : hollowed-out telemetryd -->
+  <section class="scene clip" id="scene-2" data-start="8.65" data-duration="10.55" data-track-index="1">
+    <div class="stitle" id="s2-title" data-layout-allow-overlap>telemetryd: a hollowed-out shell</div>
+    <div id="s2-card" data-layout-allow-overlap></div>
+    <div id="s2-card-head" class="mono" data-layout-allow-overlap>core/daemon-boot-telemetryd · telemetryd-configuration.xml</div>
+    <div class="q-chip" id="s2-q1" style="left:500px;top:360px" data-layout-allow-overlap>JTI<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q2" style="left:736px;top:360px" data-layout-allow-overlap>OpenConfig<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q3" style="left:972px;top:360px" data-layout-allow-overlap>Netflow-5/9<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q4" style="left:1208px;top:360px" data-layout-allow-overlap>IPFIX<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q5" style="left:500px;top:480px" data-layout-allow-overlap>SFlow<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q6" style="left:736px;top:480px" data-layout-allow-overlap>NXOS<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q7" style="left:972px;top:480px" data-layout-allow-overlap>BMP<small>DISABLED</small></div>
+    <div class="q-chip" id="s2-q8" style="left:1208px;top:480px" data-layout-allow-overlap>Graphite<small>DISABLED</small></div>
+    <div id="s2-stamp" data-layout-allow-overlap>ALL 8 QUEUES OFF</div>
+    <svg id="s2-bypass" width="1920" height="1080" viewBox="0 0 1920 1080" data-layout-allow-overlap>
+      <path class="edge" id="s2-bypass-path" d="M 160 660 C 300 880, 1620 880, 1760 660"/>
+    </svg>
+    <div id="s2-bypass-lbl" data-layout-allow-overlap>the real pipeline goes around it</div>
+  </section>
+
+  <!-- scene 3 : minion -->
+  <section class="scene clip" id="scene-3" data-start="19.2" data-duration="11.35" data-track-index="1">
+    <div class="chip" id="s3-chip">01</div>
+    <div class="stitle" id="s3-title">Minion — one UDP port</div>
+    <div class="pkt" id="s3-p1">Netflow-5<small>0x0005</small></div>
+    <div class="pkt" id="s3-p2">Netflow-9<small>0x0009</small></div>
+    <div class="pkt" id="s3-p3">IPFIX<small>0x000A</small></div>
+    <div class="pkt" id="s3-p4">sFlow<small>0x0000&nbsp;0005</small></div>
+    <svg id="s3-arrows" width="1920" height="1080" viewBox="0 0 1920 1080" data-layout-allow-overlap>
+      <path class="edge" id="s3-a1" d="M 325 430 L 620 615"/>
+      <path class="edge" id="s3-a2" d="M 735 430 L 830 610"/>
+      <path class="edge" id="s3-a3" d="M 1145 430 L 1055 610"/>
+      <path class="edge" id="s3-a4" d="M 1555 430 L 1275 615"/>
+    </svg>
+    <div id="s3-port">FlowUdpListener · <span>UDP 4729</span></div>
+    <div class="caption" id="s3-cap"><b>FlowProtocol.detect()</b> — a 4-byte version sniff; the payload stays opaque bytes</div>
+  </section>
+
+  <!-- scene 4 : gateway -->
+  <section class="scene clip" id="scene-4" data-start="30.55" data-duration="10.55" data-track-index="1">
+    <div class="chip" id="s4-chip">02</div>
+    <div class="stitle" id="s4-title">minion-gateway — transport translation</div>
+    <div id="s4-colhead-l">gRPC BIDI METHOD</div>
+    <div id="s4-colhead-r">KAFKA TOPIC</div>
+    <div class="lane-l" id="s4-l1">publishNetflow5</div>
+    <div class="lane-l" id="s4-l2">publishNetflow9</div>
+    <div class="lane-l" id="s4-l3">publishIpfix</div>
+    <div class="lane-l" id="s4-l4">publishSflow</div>
+    <svg id="s4-edges" width="1920" height="1080" viewBox="0 0 1920 1080" data-layout-allow-overlap>
+      <path class="edge" id="s4-e1" d="M 630 334 L 1030 334"/>
+      <path class="edge" id="s4-e2" d="M 630 448 L 1030 448"/>
+      <path class="edge" id="s4-e3" d="M 630 562 L 1030 562"/>
+      <path class="edge" id="s4-e4" d="M 630 676 L 1030 676"/>
+    </svg>
+    <div class="lane-r" id="s4-r1">DeltaV.Sink.Telemetry-Netflow-5</div>
+    <div class="lane-r" id="s4-r2">DeltaV.Sink.Telemetry-Netflow-9</div>
+    <div class="lane-r" id="s4-r3">DeltaV.Sink.Telemetry-IPFIX</div>
+    <div class="lane-r" id="s4-r4">DeltaV.Sink.Telemetry-SFlow</div>
+    <div class="caption" id="s4-cap">key = <b>location@minion-id</b> · SinkMessage wrapper · lossy by design</div>
+  </section>
+
+  <!-- scene 5 : flow-enricher -->
+  <section class="scene clip" id="scene-5" data-start="41.1" data-duration="14.88" data-track-index="1">
+    <div class="chip" id="s5-chip">03</div>
+    <div class="stitle" id="s5-title">flow-enricher — parse · enrich · persist</div>
+    <div class="topic5" id="s5-t1">…Telemetry-Netflow-5</div>
+    <div class="topic5" id="s5-t2">…Telemetry-Netflow-9</div>
+    <div class="topic5" id="s5-t3">…Telemetry-IPFIX</div>
+    <div class="topic5" id="s5-t4">…Telemetry-SFlow</div>
+    <svg id="s5-edges" width="1920" height="1080" viewBox="0 0 1920 1080" data-layout-allow-overlap>
+      <path class="edge" id="s5-e1" d="M 620 319 C 700 319, 730 420, 800 440"/>
+      <path class="edge" id="s5-e2" d="M 620 419 C 690 419, 720 460, 800 470"/>
+      <path class="edge" id="s5-e3" d="M 620 519 C 690 519, 720 500, 800 490"/>
+      <path class="edge" id="s5-e4" d="M 620 619 C 700 619, 730 540, 800 520"/>
+      <path class="edge" id="s5-e5a" d="M 1220 480 L 1260 480"/>
+      <path class="edge" id="s5-e5b" d="M 1500 480 L 1560 480"/>
+      <path class="edge-dim" id="s5-e6" d="M 1010 700 L 1010 620"/>
+    </svg>
+    <div id="s5-enr" data-layout-allow-overlap><b>flow-enricher</b><span>one Spring Cloud Stream binding<br>group: deltav-flow-enricher</span></div>
+    <div id="s5-xn" data-layout-allow-overlap>×N</div>
+    <div id="s5-topic">deltav-flows</div>
+    <div id="s5-ch"><b>ClickHouse</b><span>own Kafka consumer</span></div>
+    <div id="s5-node-ctx">⇡ node context (provisiond)</div>
+  </section>
+
+  <!-- scene 6 : meaning -->
+  <section class="scene clip" id="scene-6" data-start="55.98" data-duration="13.15" data-track-index="1">
+    <div class="stitle" id="s6-title">Why it's built this way</div>
+    <div class="panel6" id="s6-left" data-layout-allow-overlap></div>
+    <div class="panel6" id="s6-right" data-layout-allow-overlap></div>
+    <div class="p6-title" id="s6-lt" data-layout-allow-overlap>Content-blind coupling</div>
+    <div class="p6-title" id="s6-rt" data-layout-allow-overlap>Scale = add replicas</div>
+    <div class="cb-row" id="s6-cb1" data-layout-allow-overlap>Minion <i>4-byte sniff only</i></div>
+    <div class="cb-row" id="s6-cb2" data-layout-allow-overlap>gateway <i>routes, never parses</i></div>
+    <div class="cb-row" id="s6-cb3" data-layout-allow-overlap><b>flow-enricher</b> <i>all protocol semantics</i></div>
+    <div class="pcell" id="s6-p1" style="left:1104px;top:412px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p2" style="left:1244px;top:412px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p3" style="left:1384px;top:412px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p4" style="left:1524px;top:412px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p5" style="left:1104px;top:500px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p6" style="left:1244px;top:500px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p7" style="left:1384px;top:500px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p8" style="left:1524px;top:500px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p9" style="left:1104px;top:588px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p10" style="left:1244px;top:588px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p11" style="left:1384px;top:588px" data-layout-allow-overlap></div>
+    <div class="pcell" id="s6-p12" style="left:1524px;top:588px" data-layout-allow-overlap></div>
+    <div id="s6-count" data-layout-allow-overlap>4 topics × 4 partitions = <b>16</b> assignable</div>
+    <div id="s6-sub" data-layout-allow-overlap>no code or config change — Kafka consumer groups do the rest</div>
+  </section>
+
+  <!-- scene 7 : recap -->
+  <section class="scene clip" id="scene-7" data-start="69.13" data-duration="11.02" data-track-index="1">
+    <div id="s7-close">Delta-V telemetry, <b>explained</b>.</div>
+    <div class="node7" id="s7-n1">Exporters<small>UDP 4729</small></div>
+    <div class="node7" id="s7-n2">Minion<small>4-byte sniff</small></div>
+    <div class="node7" id="s7-n3">gateway<small>gRPC → Kafka</small></div>
+    <div class="node7" id="s7-n4">Kafka<small>per-proto topics</small></div>
+    <div class="node7" id="s7-n5">flow-enricher<small>parse + enrich</small></div>
+    <div class="node7" id="s7-n6">ClickHouse<small>consumes deltav-flows</small></div>
+    <svg id="s7-edges" width="1920" height="1080" viewBox="0 0 1920 1080" data-layout-allow-overlap>
+      <path class="edge" id="s7-e1" d="M 350 540 L 400 540"/>
+      <path class="edge" id="s7-e2" d="M 640 540 L 690 540"/>
+      <path class="edge" id="s7-e3" d="M 930 540 L 980 540"/>
+      <path class="edge" id="s7-e4" d="M 1220 540 L 1270 540"/>
+      <path class="edge" id="s7-e5" d="M 1510 540 L 1560 540"/>
+    </svg>
+    <div id="s7-td">telemetryd<small>extension seat · not in the flow path</small></div>
+  </section>
+
+  <!-- narration, track 7 -->
+  <audio id="aud-s1" data-start="0.5"   data-duration="7.95"  data-track-index="7" data-volume="1" src="assets/audio/s1_hook.wav"></audio>
+  <audio id="aud-s2" data-start="8.95"  data-duration="10.05" data-track-index="7" data-volume="1" src="assets/audio/s2_context.wav"></audio>
+  <audio id="aud-s3" data-start="19.5"  data-duration="10.85" data-track-index="7" data-volume="1" src="assets/audio/s3_step1.wav"></audio>
+  <audio id="aud-s4" data-start="30.85" data-duration="10.05" data-track-index="7" data-volume="1" src="assets/audio/s4_step2.wav"></audio>
+  <audio id="aud-s5" data-start="41.4"  data-duration="14.38" data-track-index="7" data-volume="1" src="assets/audio/s5_step3.wav"></audio>
+  <audio id="aud-s6" data-start="56.28" data-duration="12.65" data-track-index="7" data-volume="1" src="assets/audio/s6_meaning.wav"></audio>
+  <audio id="aud-s7" data-start="69.43" data-duration="9.8"   data-track-index="7" data-volume="1" src="assets/audio/s7_recap.wav"></audio>
+  <!-- music bed, track 8 -->
+  <audio id="aud-music" data-start="0" data-duration="80.15" data-track-index="8" data-volume="0.11" src="assets/audio/music.wav"></audio>
+
+  <script src="assets/gsap.min.js"></script>
+  <script>
+    // Scene starts — must match the section data-start attributes above.
+    const S1 = 0, S2 = 8.65, S3 = 19.2, S4 = 30.55, S5 = 41.1, S6 = 55.98, S7 = 69.13;
+
+    const tl = gsap.timeline({ paused: true });
+
+    // scene 1 — hook
+    tl.fromTo("#s1-kicker", { opacity: 0 },
+      { opacity: 1, duration: 0.7, ease: "power1.out" }, S1 + 0.3);
+    tl.fromTo("#s1-q", { opacity: 0, y: 28 },
+      { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }, S1 + 0.5);
+    // "it isn't telemetry d" beat lands near the end of the clip
+    tl.fromTo("#s1-answer", { opacity: 0, scale: 0.88 },
+      { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, S1 + 6.3);
+
+    // scene 2 — hollowed-out shell
+    tl.fromTo("#s2-title", { opacity: 0, x: -24 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S2 + 0.3);
+    tl.fromTo("#s2-card", { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, S2 + 0.5);
+    tl.fromTo("#s2-card-head", { opacity: 0 },
+      { opacity: 1, duration: 0.5, ease: "none" }, S2 + 0.9);
+    tl.fromTo(["#s2-q1","#s2-q2","#s2-q3","#s2-q4","#s2-q5","#s2-q6","#s2-q7","#s2-q8"],
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.4, stagger: 0.12, ease: "power1.out" }, S2 + 1.3);
+    // "all eight of its queues are disabled" ≈ 4.5 s into the clip
+    tl.fromTo("#s2-stamp", { opacity: 0, scale: 1.5, rotation: -6 },
+      { opacity: 1, scale: 1, rotation: -6, duration: 0.45, ease: "power3.in" }, S2 + 4.6);
+    // "the real pipeline bypasses it entirely" ≈ 6.8 s in
+    tl.to("#s2-bypass-path", { strokeDashoffset: 0, duration: 1.6, ease: "power1.inOut" }, S2 + 7.0);
+    tl.fromTo("#s2-bypass-lbl", { opacity: 0 },
+      { opacity: 1, duration: 0.5, ease: "none" }, S2 + 8.2);
+
+    // scene 3 — minion
+    tl.fromTo("#s3-chip", { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.4)" }, S3 + 0.3);
+    tl.fromTo("#s3-title", { opacity: 0, x: -20 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S3 + 0.5);
+    tl.fromTo("#s3-port", { opacity: 0, scaleX: 0.92 },
+      { opacity: 1, scaleX: 1, duration: 0.7, ease: "power2.out" }, S3 + 1.4);
+    tl.fromTo(["#s3-p1","#s3-p2","#s3-p3","#s3-p4"], { opacity: 0, y: -30 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.25, ease: "power2.out" }, S3 + 3.0);
+    tl.to(["#s3-a1","#s3-a2","#s3-a3","#s3-a4"],
+      { strokeDashoffset: 0, duration: 0.7, stagger: 0.2, ease: "power1.inOut" }, S3 + 4.4);
+    // "a four byte version sniff" ≈ 6.5 s in
+    tl.fromTo("#s3-cap", { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, S3 + 6.6);
+
+    // scene 4 — gateway
+    tl.fromTo("#s4-chip", { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.4)" }, S4 + 0.3);
+    tl.fromTo("#s4-title", { opacity: 0, x: -20 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S4 + 0.5);
+    tl.fromTo(["#s4-colhead-l","#s4-colhead-r"], { opacity: 0 },
+      { opacity: 1, duration: 0.5, ease: "none" }, S4 + 1.0);
+    // "its own g R P C method" ≈ 2.5 s in
+    tl.fromTo(["#s4-l1","#s4-l2","#s4-l3","#s4-l4"], { opacity: 0, x: -24 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.15, ease: "power2.out" }, S4 + 1.6);
+    tl.to(["#s4-e1","#s4-e2","#s4-e3","#s4-e4"],
+      { strokeDashoffset: 0, duration: 0.6, stagger: 0.15, ease: "power1.inOut" }, S4 + 3.4);
+    // "lands on its own Kafka topic" ≈ 5 s in
+    tl.fromTo(["#s4-r1","#s4-r2","#s4-r3","#s4-r4"], { opacity: 0, x: 24 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.15, ease: "power2.out" }, S4 + 4.4);
+    // "keyed by location and Minion I D" ≈ 7.5 s in
+    tl.fromTo("#s4-cap", { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, S4 + 7.4);
+
+    // scene 5 — flow-enricher
+    tl.fromTo("#s5-chip", { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.4)" }, S5 + 0.3);
+    tl.fromTo("#s5-title", { opacity: 0, x: -20 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S5 + 0.5);
+    tl.fromTo(["#s5-t1","#s5-t2","#s5-t3","#s5-t4"], { opacity: 0, x: -24 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.15, ease: "power2.out" }, S5 + 1.2);
+    // "one Spring Cloud Stream binding consumes all four topics" ≈ 2.5–5 s
+    tl.fromTo("#s5-enr", { opacity: 0, scale: 0.95 },
+      { opacity: 1, scale: 1, duration: 0.6, ease: "power2.out" }, S5 + 2.6);
+    tl.fromTo("#s5-xn", { opacity: 0, scale: 0.7 },
+      { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, S5 + 3.2);
+    tl.to(["#s5-e1","#s5-e2","#s5-e3","#s5-e4"],
+      { strokeDashoffset: 0, duration: 0.7, stagger: 0.12, ease: "power1.inOut" }, S5 + 3.4);
+    // "adds node context" ≈ 7.5 s in
+    tl.fromTo("#s5-node-ctx", { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, S5 + 7.5);
+    tl.to("#s5-e6", { opacity: 1, duration: 0.4, ease: "none" }, S5 + 7.8);
+    // "publishes enriched flows back to Kafka" ≈ 9.2 s in
+    tl.to("#s5-e5a", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S5 + 9.2);
+    tl.fromTo("#s5-topic", { opacity: 0, x: 20 },
+      { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, S5 + 9.4);
+    // "ClickHouse's own consumer ingests them" ≈ 11.5 s in
+    tl.to("#s5-e5b", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S5 + 11.5);
+    tl.fromTo("#s5-ch", { opacity: 0, x: 24 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S5 + 11.7);
+
+    // scene 6 — meaning
+    tl.fromTo("#s6-title", { opacity: 0, x: -24 },
+      { opacity: 1, x: 0, duration: 0.6, ease: "power2.out" }, S6 + 0.3);
+    tl.fromTo(["#s6-left","#s6-lt"], { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, S6 + 0.7);
+    // "content blind — only the enricher understands flows" ≈ 1.5–5.5 s
+    tl.fromTo(["#s6-cb1","#s6-cb2","#s6-cb3"], { opacity: 0, x: -18 },
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.5, ease: "power2.out" }, S6 + 1.8);
+    // "scaling is just replicas" ≈ 6 s in
+    tl.fromTo(["#s6-right","#s6-rt"], { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, S6 + 6.0);
+    tl.fromTo(["#s6-p1","#s6-p2","#s6-p3","#s6-p4","#s6-p5","#s6-p6",
+               "#s6-p7","#s6-p8","#s6-p9","#s6-p10","#s6-p11","#s6-p12"],
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: 0.3, stagger: 0.14, ease: "power1.out" }, S6 + 6.8);
+    // "sixteen partitions" ≈ 9.5 s in
+    tl.fromTo("#s6-count", { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, S6 + 9.4);
+    tl.fromTo("#s6-sub", { opacity: 0 },
+      { opacity: 1, duration: 0.5, ease: "none" }, S6 + 10.6);
+
+    // scene 7 — recap: nodes land as narration names them
+    // "So: Minion, gateway, Kafka, enricher, ClickHouse." ≈ 0.3–4.3 s of clip
+    tl.fromTo("#s7-n1", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 0.4);
+    tl.fromTo("#s7-n2", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 1.0);
+    tl.fromTo("#s7-n3", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 1.7);
+    tl.fromTo("#s7-n4", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 2.4);
+    tl.fromTo("#s7-n5", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 3.1);
+    tl.fromTo("#s7-n6", { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 3.8);
+    tl.to(["#s7-e1","#s7-e2","#s7-e3","#s7-e4","#s7-e5"],
+      { strokeDashoffset: 0, duration: 0.4, stagger: 0.55, ease: "power1.inOut" }, S7 + 1.0);
+    // "telemetry d keeps its seat" ≈ 4.8 s in
+    tl.fromTo("#s7-td", { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, S7 + 5.0);
+    tl.fromTo("#s7-close", { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, S7 + 7.2);
+
+    window.__timelines = window.__timelines || {};
+    window.__timelines["deltav-telemetryd-explainer"] = tl;
+  </script>
+</div>
+</body>
+</html>
