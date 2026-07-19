@@ -1,12 +1,12 @@
 # Delta-V flows — explainer video
 
-An 83-second narrated explainer of how flow telemetry ingestion works in
+An 85-second narrated explainer of how flow telemetry ingestion works in
 Delta-V: Minion → minion-gateway → Kafka → flow-enricher → Kafka →
 ClickHouse. The entire video is source code: every scene, word, color, and
 timing is a one-line edit in `video/index.html` followed by a ~30-second
 re-render.
 
-**Watch:** [`production/renders/explainer-v3.mp4`](production/renders/explainer-v3.mp4)
+**Watch:** [`production/renders/explainer-v4.mp4`](production/renders/explainer-v4.mp4)
 
 ## How it was made
 
@@ -36,7 +36,7 @@ production/
   checkpoints/self-review.md      # post-render QA evidence (all versions)
   checkpoints/snapshots|frames/   # reviewed stills
   assets/audio/                   # Kokoro WAVs + durations.json
-  renders/explainer-v3.mp4        # the deliverable
+  renders/explainer-v4.mp4        # the deliverable
 tools/tts_generate.py             # narration synthesis (edit SCENE_NARRATIONS)
 video/index.html                  # THE VIDEO — 7 scenes, one GSAP timeline
 video/assets/                     # vendored gsap + scene audio

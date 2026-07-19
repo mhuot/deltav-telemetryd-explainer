@@ -176,7 +176,7 @@
 </head>
 <body>
 <div id="stage" data-composition-id="deltav-flows-explainer" data-start="0"
-     data-duration="82.85" data-width="1920" data-height="1080">
+     data-duration="85.12" data-width="1920" data-height="1080">
 
   <div id="bg" class="fill"></div>
 
@@ -292,7 +292,7 @@
   </section>
 
   <!-- scene 7 : recap -->
-  <section class="scene clip" id="scene-7" data-start="71.96" data-duration="10.89" data-track-index="1">
+  <section class="scene clip" id="scene-7" data-start="71.96" data-duration="13.16" data-track-index="1">
     <div id="s7-close">Delta-V flows, <b>explained</b>.</div>
     <div class="node7" id="s7-n1">Exporters<small>UDP 4729</small></div>
     <div class="node7" id="s7-n2">Minion<small>4-byte sniff</small></div>
@@ -316,9 +316,9 @@
   <audio id="aud-s4" data-start="32.21" data-duration="10.05" data-track-index="7" data-volume="1" src="assets/audio/s4_step2.wav"></audio>
   <audio id="aud-s5" data-start="42.76" data-duration="14.38" data-track-index="7" data-volume="1" src="assets/audio/s5_step3.wav"></audio>
   <audio id="aud-s6" data-start="57.64" data-duration="14.12" data-track-index="7" data-volume="1" src="assets/audio/s6_meaning.wav"></audio>
-  <audio id="aud-s7" data-start="72.26" data-duration="9.65"  data-track-index="7" data-volume="1" src="assets/audio/s7_recap.wav"></audio>
+  <audio id="aud-s7" data-start="72.26" data-duration="11.93" data-track-index="7" data-volume="1" src="assets/audio/s7_recap.wav"></audio>
   <!-- music bed, track 8 -->
-  <audio id="aud-music" data-start="0" data-duration="82.85" data-track-index="8" data-volume="0.11" src="assets/audio/music.wav"></audio>
+  <audio id="aud-music" data-start="0" data-duration="85.12" data-track-index="8" data-volume="0.11" src="assets/audio/music.wav"></audio>
 
   <script src="assets/gsap.min.js"></script>
   <script>
@@ -449,15 +449,15 @@
     tl.fromTo("#s7-n5", { opacity: 0, y: 18 },
       { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 3.7);
     tl.fromTo("#s7-n6", { opacity: 0, y: 18 },
-      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 5.3);
+      { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S7 + 6.1);
     tl.to("#s7-e1", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 0.9);
     tl.to("#s7-e2", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 1.7);
     tl.to("#s7-e3", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 2.5);
     tl.to("#s7-e4", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 3.3);
-    tl.to("#s7-e5", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 4.9);
-    // "Delta V flows, explained" ≈ 7.5 s in
+    tl.to("#s7-e5", { strokeDashoffset: 0, duration: 0.4, ease: "power1.inOut" }, S7 + 5.7);
+    // "Delta V flows, explained" ≈ 9.9 s in
     tl.fromTo("#s7-close", { opacity: 0, y: 16 },
-      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, S7 + 7.4);
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, S7 + 9.8);
 
     window.__timelines = window.__timelines || {};
     window.__timelines["deltav-flows-explainer"] = tl;

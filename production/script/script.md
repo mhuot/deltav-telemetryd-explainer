@@ -1,4 +1,14 @@
-# Script — LOCKED v3 (2026-07-18)
+# Script — LOCKED v4 (2026-07-19)
+
+v4 changes ONLY s7_recap, per user request — end on persistence: "So: the
+Minion sniffs, the gateway routes, Kafka carries, the enricher parses and
+enriches — and every flow is persisted in ClickHouse, to answer queries
+later. Delta V flows, explained." (30 words, measured 11.93 s; total
+narration 80.67 s → video 85.12 s.)
+
+---
+
+# Script — LOCKED v3 (2026-07-18) [superseded]
 
 v3 reframes the video as "Delta-V flows, explained" — telemetryd removed
 entirely per the SME ("We shouldn't mention Telemetryd in the Flows

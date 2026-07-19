@@ -65,8 +65,8 @@ SCENE_NARRATIONS: list[tuple[str, str]] = [
     (
         "s7_recap",
         "So: the Minion sniffs, the gateway routes, Kafka carries, the "
-        "enricher parses and enriches, and ClickHouse answers the queries. "
-        "Delta V flows, explained.",
+        "enricher parses and enriches — and every flow is persisted in "
+        "ClickHouse, to answer queries later. Delta V flows, explained.",
     ),
 ]
 
