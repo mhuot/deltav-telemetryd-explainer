@@ -1,0 +1,72 @@
+name: validate
+
+# Runs the HyperFrames validation ladder (lint + check) against the pinned
+# toolchain. The weekly run surfaces drift: bump HYPERFRAMES_REF to adopt a
+# newer toolchain, and a red build pinpoints which new rule the composition
+# violates. Narration WAVs are committed, so no TTS is needed in CI.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1" # weekly, Monday 06:17 UTC
+  workflow_dispatch:
+
+env:
+  HYPERFRAMES_REPO: heygen-com/hyperframes
+  HYPERFRAMES_REF: 4a4903b49a8e1c8cf5ffa91add6c1d9032e79317 # 2026-07-14, build the renders were validated with
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install system deps (ffmpeg + headless-Chrome libraries)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-liberation libasound2t64 \
+            libatk-bridge2.0-0 libatk1.0-0 libcups2 libdbus-1-3 libdrm2 \
+            libgbm1 libgtk-3-0 libnspr4 libnss3 libx11-xcb1 libxcomposite1 \
+            libxdamage1 libxfixes3 libxkbcommon0 libxrandr2
+
+      - name: Cache HyperFrames build
+        id: hf-cache
+        uses: actions/cache@v4
+        with:
+          path: hyperframes
+          key: hyperframes-${{ env.HYPERFRAMES_REF }}
+
+      - name: Build HyperFrames (cache miss)
+        if: steps.hf-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone https://github.com/${{ env.HYPERFRAMES_REPO }} hyperframes
+          cd hyperframes
+          git checkout ${{ env.HYPERFRAMES_REF }}
+          bun install
+          bun run build
+          test -f packages/cli/dist/cli.js
+
+      - name: Cache Puppeteer Chrome
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: puppeteer-${{ runner.os }}-${{ env.HYPERFRAMES_REF }}
+
+      - name: Doctor (downloads Chrome on first run; optional items may fail)
+        run: node hyperframes/packages/cli/dist/cli.js doctor || true
+
+      - name: Lint
+        working-directory: video
+        run: node ../hyperframes/packages/cli/dist/cli.js lint
+
+      - name: Check
+        working-directory: video
+        run: node ../hyperframes/packages/cli/dist/cli.js check
